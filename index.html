@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinexAI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: rgba(0, 251, 255, 0.322);
+        }
+
+        button {
+            font-size: 20px;
+            background-color: rgba(0, 255, 255, 0.231);
+            border: 50px aquamarine;
+            border-radius: 50px;
+        }
+
+        .animation {
+            animation: blinker 2s linear infinite;
+        }
+
+
+        canvas{
+            margin-top: 10px;
+            border: 2px solid rgb(21, 151, 199);
+            border-radius: 10px;
+            animation: blinker2 2s linear infinite;
+        }
+
+        @keyframes blinker {
+            0% {
+                color: mediumvioletred;
+            }
+            50% {
+                color: rgb(113, 21, 199);
+            }
+            100% {
+                color: rgb(199, 21, 60);
+            }
+        }
+
+        canvas {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>WinexAI Background Remover <strong class="animation">BETA</strong></h2>
+    <input type="file" id="upload" accept="image/*">
+    <canvas id="output"></canvas>
+    <br>
+    <a id="download" style="display:none;" download="image-without-background.png">
+        <button>Download image</button>
+    </a>
+
+    <script>
+        async function removeBackground(image) {
+            const net = await bodyPix.load();
+            const segmentation = await net.segmentPerson(image, {
+                internalResolution: 'medium',
+                segmentationThreshold: 0.7
+            });
+
+            const canvas = document.getElementById('output');
+            const ctx = canvas.getContext('2d');
+            canvas.width = image.width;
+            canvas.height = image.height;
+
+            ctx.drawImage(image, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixelData = imageData.data;
+
+            for (let i = 0; i < pixelData.length; i += 4) {
+                if (segmentation.data[i / 4] === 0) {
+                    pixelData[i + 3] = 0; // Удаляем фон (прозрачность)
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+
+            // Сохраняем картинку
+            const downloadLink = document.getElementById('download');
+            downloadLink.href = canvas.toDataURL('image/png');
+            downloadLink.style.display = 'inline'; // Показываем кнопку
+        }
+
+        document.getElementById('upload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const img = new Image();
+            img.onload = () => removeBackground(img);
+            img.src = URL.createObjectURL(file);
+        });
+    </script>
+</body>
+
+</html>
