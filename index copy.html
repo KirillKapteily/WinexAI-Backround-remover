@@ -26,7 +26,7 @@
         }
 
 
-        canvas{
+        canvas {
             margin-top: 10px;
             border: 2px solid rgb(21, 151, 199);
             border-radius: 10px;
@@ -37,9 +37,11 @@
             0% {
                 color: mediumvioletred;
             }
+
             50% {
                 color: rgb(113, 21, 199);
             }
+
             100% {
                 color: rgb(199, 21, 60);
             }
@@ -64,9 +66,10 @@
         async function removeBackground(image) {
             const net = await bodyPix.load();
             const segmentation = await net.segmentPerson(image, {
-                internalResolution: 'medium',
-                segmentationThreshold: 0.7
+                internalResolution: 'high',
+                segmentationThreshold: 0.9
             });
+
 
             const canvas = document.getElementById('output');
             const ctx = canvas.getContext('2d');
